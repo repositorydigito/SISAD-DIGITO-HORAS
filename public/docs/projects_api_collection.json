@@ -1,0 +1,307 @@
+{
+  "info": {
+    "name": "Proyectos API",
+    "description": "API para gestionar proyectos y obtener datos para BI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Autenticación",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"usuario@ejemplo.com\",\n    \"password\": \"contraseña\",\n    \"device_name\": \"Postman\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "login"]
+            },
+            "description": "Iniciar sesión y obtener token de API"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "logout"]
+            },
+            "description": "Cerrar sesión (revocar token)"
+          },
+          "response": []
+        },
+        {
+          "name": "Usuario actual",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/user",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user"]
+            },
+            "description": "Obtener información del usuario autenticado"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints para autenticación"
+    },
+    {
+      "name": "Proyectos",
+      "item": [
+        {
+          "name": "Listar proyectos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/projects?category=Categoria1&state=Activo&per_page=10&sort_field=created_at&sort_direction=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "Categoria1",
+                  "description": "Filtrar por categoría"
+                },
+                {
+                  "key": "state",
+                  "value": "Activo",
+                  "description": "Filtrar por estado"
+                },
+                {
+                  "key": "per_page",
+                  "value": "10",
+                  "description": "Resultados por página"
+                },
+                {
+                  "key": "sort_field",
+                  "value": "created_at",
+                  "description": "Campo para ordenar"
+                },
+                {
+                  "key": "sort_direction",
+                  "value": "desc",
+                  "description": "Dirección de ordenamiento (asc/desc)"
+                }
+              ]
+            },
+            "description": "Obtener listado de proyectos con filtros y paginación"
+          },
+          "response": []
+        },
+        {
+          "name": "Ver proyecto",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/projects/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "1"]
+            },
+            "description": "Obtener detalles de un proyecto específico"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear proyecto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Nuevo Proyecto\",\n    \"code\": \"PROJ-001\",\n    \"entity_id\": 1,\n    \"business_line_id\": 1,\n    \"category\": \"Categoria1\",\n    \"state\": \"Activo\",\n    \"start_date\": \"2024-01-01\",\n    \"end_date\": \"2024-12-31\",\n    \"end_date_projected\": \"2024-12-15\",\n    \"real_progress\": 25,\n    \"phase\": \"Planificación\",\n    \"description\": \"Descripción del proyecto\",\n    \"billing\": 20,\n    \"users\": [1, 2, 3]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects"]
+            },
+            "description": "Crear un nuevo proyecto"
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar proyecto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Proyecto Actualizado\",\n    \"state\": \"Completado\",\n    \"real_progress\": 100,\n    \"end_date_real\": \"2024-12-20\",\n    \"billing\": 100,\n    \"users\": [1, 2, 3, 4]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "1"]
+            },
+            "description": "Actualizar un proyecto existente"
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar proyecto",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/projects/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "1"]
+            },
+            "description": "Eliminar un proyecto"
+          },
+          "response": []
+        },
+        {
+          "name": "Estadísticas de proyectos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/projects/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "statistics"]
+            },
+            "description": "Obtener estadísticas de proyectos para BI"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints para gestionar proyectos"
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "your_token_here",
+      "type": "string"
+    }
+  ]
+}
