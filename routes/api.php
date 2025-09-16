@@ -33,7 +33,28 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
 
+    // Usuarios
+    Route::get('/users', [\App\Http\Controllers\Api\UserController::class, 'index']);
+    Route::get('/users/statistics', [\App\Http\Controllers\Api\UserController::class, 'statistics']);
+    // Estadísticas de horas por usuario
+    Route::get('/users/time-statistics', [\App\Http\Controllers\Api\UserTimeEntryController::class, 'statistics']);
+    Route::get('/users/time-entries', [\App\Http\Controllers\Api\UserTimeEntryController::class, 'index']);
+    Route::get('/users/{user}', [\App\Http\Controllers\Api\UserController::class, 'show']);
+
+    // Entidades
+    Route::get('/entities', [\App\Http\Controllers\Api\EntityController::class, 'index']);
+    Route::get('/entities/statistics', [\App\Http\Controllers\Api\EntityController::class, 'statistics']);
+    Route::get('/entities/types', [\App\Http\Controllers\Api\EntityController::class, 'types']);
+    Route::get('/entities/business-groups', [\App\Http\Controllers\Api\EntityController::class, 'businessGroups']);
+    Route::get('/entities/{entity}', [\App\Http\Controllers\Api\EntityController::class, 'show']);
+
     // Proyectos
     Route::get('/projects/statistics', [ProjectController::class, 'statistics']);
     Route::apiResource('projects', ProjectController::class);
+
+    // Hitos de proyectos
+    Route::apiResource('projects.milestones', \App\Http\Controllers\Api\ProjectMilestoneController::class);
+    // Time Entries
+    Route::apiResource('time-entries', \App\Http\Controllers\Api\TimeEntryController::class);
+   
 });

@@ -46,6 +46,16 @@ class TimeEntryReportResource extends Resource
                 ->label('Usuario')
                 ->searchable(['users.name'])
                 ->icon('heroicon-o-user'),
+
+            Tables\Columns\TextColumn::make('last_entry')
+                ->label('Último Registro')
+                ->date('d/m/Y')
+                ->icon('heroicon-o-clock')
+                ->description(fn ($record) => $record->last_entry ? Carbon::parse($record->last_entry)->diffForHumans() : 'Sin registros')
+                ->color(fn ($record) => 
+                    !$record->last_entry ? 'danger' :
+                    (Carbon::parse($record->last_entry)->lt(Carbon::now()->subDays(7)) ? 'warning' : 'success')
+                ),
         ];
 
         // Solo agregamos columnas dinámicas si hay filtros aplicados
@@ -133,6 +143,7 @@ class TimeEntryReportResource extends Resource
                         'users.name as user_name',
                         DB::raw($dateColumns),
                         DB::raw('COALESCE(SUM(time_entries.hours), 0) as total_hours'),
+                        DB::raw('MAX(time_entries.date) as last_entry'),
                     ])
                     ->leftJoin('time_entries', function ($join) use ($startDate, $endDate) {
                         $join->on('users.id', '=', 'time_entries.user_id')

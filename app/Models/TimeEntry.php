@@ -13,9 +13,12 @@ class TimeEntry extends Model
     protected $fillable = [
         'user_id',
         'project_id',
+        'milestone_id',
         'date',
         'phase',
-        'hours'
+        'hours',
+        'detail',
+        'description'
     ];
 
     protected $casts = [
@@ -40,5 +43,10 @@ class TimeEntry extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function milestone(): BelongsTo
+    {
+        return $this->belongsTo(ProjectMilestone::class);
     }
 }

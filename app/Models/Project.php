@@ -15,6 +15,7 @@ class Project extends Model
         'entity_id',
         'business_line_id',
         'category',
+        'validity',
         'state',
         'start_date',
         'end_date',
@@ -68,7 +69,7 @@ class Project extends Model
     {
         return $this->belongsTo(BusinessLine::class);
     }
-    public function timeEntries()
+    public function timeEntries(): HasMany
     {
         return $this->hasMany(TimeEntry::class);
     }
@@ -79,21 +80,37 @@ class Project extends Model
     }
 
     /**
-     * Calcular los días de desfase entre la fecha de finalización y la fecha de finalización real
+     * Obtener los hitos del proyecto
+     */
+    public function milestones(): HasMany
+    {
+        return $this->hasMany(ProjectMilestone::class)->orderBy('order');
+    }
+
+    /**
+     * Obtener los hitos de facturación del proyecto
+     */
+    public function billingMilestones(): HasMany
+    {
+        return $this->hasMany(BillingMilestone::class)->orderBy('order');
+    }
+
+    /**
+     * Calcular los días de desfase entre la fecha de finalización planificada y la fecha de finalización proyectada
      *
      * @return int
      */
     public function calculateDelayDays(): int
     {
-        if (!$this->end_date || !$this->end_date_real) {
+        if (!$this->end_date || !$this->end_date_projected) {
             return 0;
         }
 
         $endDateObj = \Carbon\Carbon::parse($this->end_date);
-        $endDateRealObj = \Carbon\Carbon::parse($this->end_date_real);
+        $endDateProjectedObj = \Carbon\Carbon::parse($this->end_date_projected);
 
-        // Si la fecha real es anterior a la fecha proyectada, no hay desfase
-        if ($endDateRealObj->lte($endDateObj)) {
+        // Si la fecha proyectada es anterior a la fecha planificada, no hay desfase
+        if ($endDateProjectedObj->lte($endDateObj)) {
             return 0;
         }
 
@@ -101,7 +118,7 @@ class Project extends Model
         $delayDays = 0;
         $currentDate = clone $endDateObj;
 
-        while ($currentDate->lt($endDateRealObj)) {
+        while ($currentDate->lt($endDateProjectedObj)) {
             // Si no es sábado (6) ni domingo (0)
             if (!in_array($currentDate->dayOfWeek, [0, 6])) {
                 $delayDays++;

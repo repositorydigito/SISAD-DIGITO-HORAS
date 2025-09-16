@@ -50,12 +50,22 @@
 
                     <!-- Cuerpo de la tabla -->
                     <tbody>
-                        @foreach (
-                            App\Models\BusinessLine::with('projects')
-                                ->get()
-                                ->sortByDesc(fn($businessLine) => $businessLine->projects->count())
-                            as $businessLine
-                        )
+                        @php
+                            // Obtener los proyectos asignados al usuario actual
+                            $userProjects = auth()->user()->projects;
+
+                            // Agrupar los proyectos por línea de negocio
+                            $businessLinesWithProjects = App\Models\BusinessLine::with(['projects' => function($query) use ($userProjects) {
+                                $query->whereIn('id', $userProjects->pluck('id'));
+                            }])
+                            ->get()
+                            ->filter(function($businessLine) {
+                                return $businessLine->projects->count() > 0;
+                            })
+                            ->sortByDesc(fn($businessLine) => $businessLine->projects->count());
+                        @endphp
+
+                        @foreach ($businessLinesWithProjects as $businessLine)
                             <!-- Fila de la LÍNEA DE NEGOCIO -->
                             <tr class="business-line-row">
                                 <td class="business-line-cell sticky left-0 z-10 sticky-left-bg px-4 py-2">
@@ -113,6 +123,17 @@
                                 </tr>
                             @endforelse
                         @endforeach
+
+                        @if ($businessLinesWithProjects->count() == 0)
+                            <tr class="project-row">
+                                <td class="project-cell sticky left-0 z-10 sticky-left-bg opacity-70 px-4 py-2">
+                                    No tienes proyectos asignados
+                                </td>
+                                @foreach (range(1, Carbon\Carbon::parse($currentDate)->daysInMonth) as $day)
+                                    <td class="px-4 py-2"></td>
+                                @endforeach
+                            </tr>
+                        @endif
 
                         <!-- TOTAL POR DÍA -->
                         <tr class="timesheet-total-cell">

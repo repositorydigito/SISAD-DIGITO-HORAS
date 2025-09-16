@@ -47,6 +47,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Project::class)->withTimestamps();
     }
 
+    public function timeEntries(): HasMany
+    {
+        return $this->hasMany(TimeEntry::class);
+    }
+
     public function responsibleExpenses()
     {
         return $this->hasMany(Expense::class, 'responsible_id');

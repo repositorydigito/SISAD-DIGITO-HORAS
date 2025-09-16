@@ -10,6 +10,7 @@ use Filament\Notifications\Notification;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
 use Filament\Support\Enums\MaxWidth;
 use Illuminate\Support\Facades\Log;
 
@@ -142,7 +143,13 @@ class Timesheet extends Page
                                 ->maxValue(24)
                                 ->step(0.5)
                                 ->suffix('horas')
-                        ])
+                        ]),
+                    Textarea::make('description')
+                        ->label('Detalle')
+                        ->required()
+                        ->placeholder('Ingrese detalles o comentarios sobre las horas registradas')
+                        ->rows(3)
+                        ->columnSpanFull()
                 ])
                 ->modalWidth(MaxWidth::Medium)
                 ->modalHeading(function () {
@@ -158,6 +165,8 @@ class Timesheet extends Page
                     $date = Carbon::parse($this->currentDate)->setDay($this->selectedDay);
 
                     $hours = [];
+                    $description = null;
+
                     foreach ($this->phases as $phaseKey => $phase) {
                         $entry = TimeEntry::where('user_id', auth()->id())
                             ->where('project_id', $this->selectedProject)
@@ -166,13 +175,21 @@ class Timesheet extends Page
                             ->first();
 
                         $hours['phaseHours'][$phaseKey] = $entry ? (float) $entry->hours : 0;
+
+                        // Guardar la descripción del primer registro que la tenga
+                        if ($entry && $entry->description && !$description) {
+                            $description = $entry->description;
+                        }
                     }
+
+                    $hours['description'] = $description;
 
                     return $hours;
                 })
                 ->action(function (array $data): void {
 
                     $date = Carbon::parse($this->currentDate)->setDay($this->selectedDay);
+                    $project = Project::with('milestones')->find($this->selectedProject);
 
                     TimeEntry::where('user_id', auth()->id())
                         ->where('project_id', $this->selectedProject)
@@ -181,17 +198,37 @@ class Timesheet extends Page
 
                     Log::info('Datos a crear:', $data);
 
+                    // Encontrar el hito correspondiente a la fecha
+                    $milestone = null;
+                    if ($project && $project->milestones->count() > 0) {
+                        $milestone = $project->milestones
+                            ->filter(function ($m) use ($date) {
+                                $startDate = Carbon::parse($m->start_date)->startOfDay();
+                                $endDate = Carbon::parse($m->end_date)->endOfDay();
+                                return $date->between($startDate, $endDate);
+                            })
+                            ->first();
+                    }
+
                     foreach ($data['phaseHours'] as $phase => $hours) {
                         $hours = floatval($hours);
 
                         if ($hours > 0) {
-                            TimeEntry::create([
+                            $entryData = [
                                 'user_id' => auth()->id(),
                                 'project_id' => $this->selectedProject,
                                 'date' => $date,
                                 'phase' => $phase,
-                                'hours' => $hours
-                            ]);
+                                'hours' => $hours,
+                                'description' => $data['description'] ?? null
+                            ];
+
+                            // Si hay un hito correspondiente, asignar el ID del hito
+                            if ($milestone) {
+                                $entryData['milestone_id'] = $milestone->id;
+                            }
+
+                            TimeEntry::create($entryData);
                         }
                     }
 
@@ -242,6 +279,7 @@ class Timesheet extends Page
                     'date' => $entry->date,
                     'hours' => (float) $entry->hours,
                     'phase' => $entry->phase,
+                    'description' => $entry->description,
                 ];
             })
             ->toArray();

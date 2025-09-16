@@ -14,6 +14,16 @@ class ListTimeEntries extends ListRecords
     {
         return [
             Actions\CreateAction::make(),
+            Actions\Action::make('import')
+                ->label('IMPORTAR DESDE CSV')
+                ->icon('heroicon-o-arrow-up-tray')
+                ->color('danger')
+                ->size('lg')
+                ->extraAttributes([
+                    'class' => 'animate-bounce',
+                    'style' => 'font-weight: bold; border: 2px solid red; padding: 10px;',
+                ])
+                ->url(fn () => TimeEntryResource::getUrl('import')),
         ];
     }
 }

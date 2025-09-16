@@ -27,12 +27,13 @@ class ProjectResource extends JsonResource
                 'name' => $this->businessLine->name ?? null,
             ],
             'category' => $this->category,
+            'validity' => $this->validity,
             'state' => $this->state,
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
             'end_date_projected' => $this->end_date_projected,
             'end_date_real' => $this->end_date_real,
-            'real_progress' => $this->real_progress,
+            'real_progress' => $this->real_progress ? $this->real_progress / 100 : 0,
             'phase' => $this->phase,
             'description' => $this->description,
             'description_incidence' => $this->description_incidence,
@@ -40,9 +41,36 @@ class ProjectResource extends JsonResource
             'description_risk' => $this->description_risk,
             'state_risk' => $this->state_risk,
             'description_change_control' => $this->description_change_control,
-            'billing' => $this->billing,
+            'billing' => $this->billing ? $this->billing / 100 : 0,
             'delay_days' => $this->delay_days ?? $this->calculateDelayDays(),
+            'total_hours' => $this->when(isset($this->total_hours), function () {
+                return (float) $this->total_hours;
+            }, function () {
+                return (float) \App\Models\TimeEntry::where('project_id', $this->id)->sum('hours');
+            }),
+            'total_hours_in_range' => $this->when(isset($this->total_hours_in_range), function () {
+                return (float) $this->total_hours_in_range;
+            }),
             'users' => UserResource::collection($this->whenLoaded('users')),
+            'milestones' => $this->whenLoaded('milestones', function () {
+                return $this->milestones->map(function ($milestone) {
+                    // Usar el atributo calculado para las horas totales
+                    $totalHours = $milestone->total_hours;
+
+                    return [
+                        'id' => $milestone->id,
+                        'name' => $milestone->name,
+                        'description' => $milestone->description,
+                        'start_date' => $milestone->start_date,
+                        'end_date' => $milestone->end_date,
+                        'billing_percentage' => $milestone->billing_percentage / 100,
+                        'status' => $milestone->status,
+                        'is_paid' => (bool) $milestone->is_paid,
+                        'order' => $milestone->order,
+                        'total_hours' => (float) $totalHours,
+                    ];
+                });
+            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'created_by' => [
@@ -60,7 +88,7 @@ class ProjectResource extends JsonResource
     }
 
     /**
-     * Calcular el progreso planificado
+     * Calcular el progreso planificado (en formato decimal 0-1)
      */
     private function calculatePlannedProgress(): float
     {
@@ -72,34 +100,34 @@ class ProjectResource extends JsonResource
         $endDate = \Carbon\Carbon::parse($this->end_date);
         $today = \Carbon\Carbon::now();
 
-        // Si la fecha actual es anterior a la fecha de inicio, el progreso es 0%
+        // Si la fecha actual es anterior a la fecha de inicio, el progreso es 0
         if ($today->lt($startDate)) {
             return 0;
         }
 
-        // Si la fecha actual es posterior a la fecha de finalización, el progreso es 100%
+        // Si la fecha actual es posterior a la fecha de finalización, el progreso es 1
         if ($today->gt($endDate)) {
-            return 100;
+            return 1;
         }
 
         // Calcular el progreso planificado
         $totalDays = $startDate->diffInDays($endDate) ?: 1; // Evitar división por cero
         $daysElapsed = $startDate->diffInDays($today);
-        $plannedProgress = ($daysElapsed / $totalDays) * 100;
+        $plannedProgress = $daysElapsed / $totalDays;
 
         return round($plannedProgress, 2);
     }
 
     /**
-     * Calcular la facturación pendiente
+     * Calcular la facturación pendiente (en formato decimal 0-1)
      */
     private function calculatePendingBilling(): float
     {
         if (!isset($this->billing)) {
-            return 100;
+            return 1;
         }
 
-        $pendingBilling = 100 - $this->billing;
+        $pendingBilling = 1 - ($this->billing / 100);
         return max(0, round($pendingBilling, 2));
     }
 }

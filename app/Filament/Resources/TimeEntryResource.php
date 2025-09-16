@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TimeEntryResource\Pages;
+use App\Filament\Resources\TimeEntryResource\Pages\ImportTimeEntries;
 use App\Models\TimeEntry;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -263,6 +264,7 @@ class TimeEntryResource extends Resource
             'index' => Pages\ListTimeEntries::route('/'),
             'create' => Pages\CreateTimeEntry::route('/create'),
             'edit' => Pages\EditTimeEntry::route('/{record}/edit'),
+            'import' => Pages\ImportTimeEntries::route('/import'),
         ];
     }
 }

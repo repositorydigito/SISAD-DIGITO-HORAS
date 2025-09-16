@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('projects', function (Blueprint $table) {
-            $table->integer('delay_days')
+            $table->enum('validity', ['Vigente', 'Sin Vigencia'])
                   ->nullable()
-                  ->after('billing')
-                  ->comment('Días laborables de desfase entre fecha de finalización planificada y fecha de finalización proyectada');
+                  ->after('category')
+                  ->comment('Vigencia para proyectos de tipo BOLSA DE HORAS');
         });
     }
 
@@ -25,7 +25,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('projects', function (Blueprint $table) {
-            $table->dropColumn('delay_days');
+            $table->dropColumn('validity');
         });
     }
 };
